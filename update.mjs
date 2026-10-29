@@ -76,12 +76,12 @@ function generateHtml(d) {
   .unit { display: block; font-size: 12px; color: #7a7a7a; margin-top: 1px; font-weight: 400; }
   @media (max-width: 560px) {
     body { padding: 8px; }
-    .head { padding: 14px 12px 12px; }
+    .head { padding: 12px 12px 10px; }
     .head h1 { font-size: 19px; }
     table { table-layout: fixed; font-size: 13.5px; }
-    th { font-size: 10px; padding: 10px 8px 8px; }
+    th { font-size: 10px; padding: 8px 8px 6px; white-space: nowrap; }
     th:first-child { width: 34%; }
-    td { padding: 10px 8px; }
+    td { padding: 8px 8px; }
     td.num { font-size: 13.5px; white-space: normal; }
     td.num span { font-size: 11px; }
     .unit { font-size: 11px; }
