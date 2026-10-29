@@ -129,39 +129,79 @@ const browser = await chromium.launch({ args: ['--no-sandbox', '--disable-dev-sh
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   await page.goto(DASHBOARD_URL, { waitUntil: 'networkidle', timeout: 120000 });
-  // The table renders client-side; wait for its rows to appear.
-  await page.waitForTimeout(8000);
+  // The table renders client-side; wait until its text is actually present,
+  // instead of guessing a fixed number of seconds.
+  try {
+    await page.waitForFunction(() => {
+      const text = document.body.innerText.toLowerCase();
+      return text.includes('temperature') && text.includes('salinity') &&
+        text.includes('dissolved') && text.includes('chlorophyll') &&
+        text.includes('phycocyanin');
+    }, { timeout: 90000 });
+  } catch {
+    console.log('Warning: timed out waiting for all 5 property names to appear; trying to parse anyway.');
+  }
+  await page.waitForTimeout(3000);
 
   const data = await page.evaluate(() => {
+    // Strategy 1: a real <table> in the DOM, as originally assumed.
     const tables = Array.from(document.querySelectorAll('table'));
     for (const table of tables) {
-      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      const rows = Array.from(table.querySelectorAll('tbody tr, tr'));
       const found = {};
       for (const row of rows) {
         const cells = Array.from(row.querySelectorAll('th, td')).map((c) => c.innerText.trim());
         if (cells.length < 4) continue;
-        const key = cells[0].toLowerCase().replace(/\s+/g, '');
+        const key = cells[0].toLowerCase().replace(/[^a-z]/g, '');
         if (['temperature', 'salinity', 'dissolvedoxygen', 'chlorophyll', 'phycocyanin'].includes(key)) {
           // cells: [property, unit, latestValue, avg-1d]
           found[key] = { latest: cells[2], avg: cells[3] };
         }
       }
-      if (Object.keys(found).length === 5) return found;
+      if (Object.keys(found).length === 5) return { data: found, method: 'table' };
     }
-    return null;
+
+    // Strategy 2: the widget is not a real <table> in the DOM (divs, custom
+    // components, etc.). Fall back to parsing the rendered text, in document
+    // order, so the summary table (above the charts) is matched first.
+    // Each row looks like: "temperature °C 23.30 22.71" (unit may be on its
+    // own line, and dissolvedOxygen may appear with or without a space).
+    const text = document.body.innerText.replace(/\s+/g, ' ');
+    const patterns = {
+      temperature: /temperature[^0-9-]*?(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/i,
+      salinity: /salinity[^0-9-]*?(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/i,
+      dissolvedoxygen: /dissolved\s*oxygen[^0-9-]*?(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/i,
+      chlorophyll: /chlorophyll[^0-9-]*?(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/i,
+      phycocyanin: /phycocyanin[^0-9-]*?(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/i,
+    };
+    const found = {};
+    for (const [key, pattern] of Object.entries(patterns)) {
+      const match = text.match(pattern);
+      if (match) found[key] = { latest: match[1], avg: match[2] };
+    }
+    if (Object.keys(found).length === 5) return { data: found, method: 'text' };
+
+    // Strategy 3: nothing matched — return a preview of what was actually
+    // rendered, so the next run's log shows the real layout instead of
+    // just "could not find rows".
+    return { data: null, method: 'none', preview: text.slice(0, 2000) };
   });
 
-  if (!data) {
+  if (!data.data) {
+    console.log('Rendered text preview (first 2000 chars):');
+    console.log(data.preview || '(no text found — page may have failed to render or be blocked)');
     throw new Error('Could not find all 5 rows in the WMSC Dock summary table. Page layout may have changed; index.html was NOT overwritten.');
   }
+  console.log(`Scraped via: ${data.method}`);
+  const parsed = data.data;
   for (const key of WANTED) {
-    if (!data[key] || !/^-?\d+(\.\d+)?$/.test(data[key].latest) || !/^-?\d+(\.\d+)?$/.test(data[key].avg)) {
-      throw new Error(`Invalid or missing values for ${key}: ${JSON.stringify(data[key])}. index.html was NOT overwritten.`);
+    if (!parsed[key] || !/^-?\d+(\.\d+)?$/.test(parsed[key].latest) || !/^-?\d+(\.\d+)?$/.test(parsed[key].avg)) {
+      throw new Error(`Invalid or missing values for ${key}: ${JSON.stringify(parsed[key])}. index.html was NOT overwritten.`);
     }
   }
 
-  console.log('Scraped values:', JSON.stringify(data, null, 2));
-  writeFileSync('index.html', generateHtml(data));
+  console.log('Scraped values:', JSON.stringify(parsed, null, 2));
+  writeFileSync('index.html', generateHtml(parsed));
   console.log('Wrote index.html');
 } finally {
   await browser.close();
