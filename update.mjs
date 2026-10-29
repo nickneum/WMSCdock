@@ -28,12 +28,17 @@ function escapeHtml(s) {
 
 function generateHtml(d) {
   // d: { temperature: {latest, avg}, salinity: {...}, ... } — raw numbers as strings
-  // Last-updated time is the time this run scraped the dashboard, in Pacific Time.
+  // Last-updated time is the time this run scraped the dashboard, in Pacific Time,
+  // rounded to the closest hour (e.g. a 1:07 PM run shows 1:00 PM, a 1:40 PM run shows 2:00 PM).
+  // Pacific Time is a whole number of hours behind UTC, so rounding in UTC and then
+  // formatting in Pacific Time gives the same hour boundary.
+  const rounded = new Date(Date.now() + 30 * 60 * 1000);
+  rounded.setMinutes(0, 0, 0);
   const updated = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Los_Angeles',
     month: 'short', day: 'numeric', year: 'numeric',
     hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
-  }).format(new Date());
+  }).format(rounded);
   const rows = [
     ['Temperature', 'Water temperature', tempDisplay(Number(d.temperature.latest)), tempDisplay(Number(d.temperature.avg)), ''],
     ['Salinity', 'PPTH', d.salinity.latest, d.salinity.avg, 'PPTH'],
