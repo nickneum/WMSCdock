@@ -58,22 +58,22 @@ function generateHtml(d) {
 <title>WMSC Dock — Water Quality Summary</title>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: transparent; color: #000000; }
-  .card { width: 100%; margin: 0; background: #ffffff; border: 1px solid #cccccc; border-radius: 0; overflow: hidden; }
-  .head { background: #990000; color: #ffffff; padding: 14px 16px 12px; border-bottom: 4px solid #ffcc00; }
+  body { margin: 0; padding: 14px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f7f4ef; color: #333333; }
+  .card { max-width: 760px; margin: 0 auto; background: #ffffff; border: 1px solid #e8ddd0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 28px rgba(153, 0, 0, 0.10); }
+  .head { background: #a63d40; color: #ffffff; padding: 18px 20px 16px; border-bottom: 4px solid #f2c94c; }
   .head h1 { margin: 0; font-size: 21px; line-height: 1.2; }
-  .head p { margin: 5px 0 0; font-size: 13.5px; line-height: 1.45; color: #ffffff; }
-  .head a { color: #ffcc00; }
+  .head p { margin: 5px 0 0; font-size: 13.5px; line-height: 1.45; color: #f5e6d3; }
+  .head a { color: #f2c94c; }
   table { width: 100%; border-collapse: collapse; font-size: 15px; }
-  th { font-size: 11.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #767676; text-align: right; padding: 10px 16px 8px; border-bottom: 2px solid #ffcc00; }
+  th { font-size: 11.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #7a7a7a; text-align: right; padding: 12px 20px 10px; border-bottom: 2px solid #f2c94c; }
   th:first-child { text-align: left; }
-  td { padding: 11px 16px; border-bottom: 1px solid #cccccc; vertical-align: middle; }
+  td { padding: 13px 20px; border-bottom: 1px solid #e8ddd0; vertical-align: middle; }
   td.num { text-align: right; font-size: 16px; font-weight: 600; white-space: nowrap; }
-  td.num span { font-size: 12.5px; font-weight: 500; color: #767676; margin-left: 3px; }
+  td.num span { font-size: 12.5px; font-weight: 500; color: #7a7a7a; margin-left: 3px; }
   tr:last-child td { border-bottom: 0; }
-  tr.alt { background: #fff2bf; }
+  tr.alt { background: #fdf6d8; }
   .prop { font-weight: 600; }
-  .unit { display: block; font-size: 12px; color: #767676; margin-top: 1px; font-weight: 400; }
+  .unit { display: block; font-size: 12px; color: #7a7a7a; margin-top: 1px; font-weight: 400; }
 </style>
 </head>
 <body>
