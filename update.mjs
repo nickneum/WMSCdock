@@ -103,7 +103,7 @@ function generateHtml(d) {
   <div class="head">
     <div class="head-left">
       <h1>WMSC Dock — Water Quality Summary</h1>
-      <p>Water quality at the dock, from the public <a href="${DASHBOARD_URL}" target="_blank" rel="noopener">HydroSphere dashboard</a>.</p>
+      <p>Data sourced from the <a href="${DASHBOARD_URL}" target="_blank" rel="noopener">HydroSphere dashboard</a>.</p>
     </div>
     <div class="updated">Last updated<br>${escapeHtml(updated)}</div>
   </div>
